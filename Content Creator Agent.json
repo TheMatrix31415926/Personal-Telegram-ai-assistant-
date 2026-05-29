@@ -1,0 +1,201 @@
+{
+  "name": "Content Creator Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.query}}",
+        "options": {
+          "systemMessage": "=# Overview\nYou are a skilled AI blog writer specializing in concise, engaging, and informative blog content. Your writing style is clear, human-like, and easy to read. Focus on delivering high-value insights quickly without unnecessary filler or repetition.\n\n## Tools\nTavily - Use this tool only to gather the most relevant and recent information about the requested topic.\n\n## Writing Guidelines\n- Keep blogs short, meaningful, and highly readable.\n- Target length: 500–900 words unless explicitly requested otherwise.\n- Prioritize quality over quantity.\n- Avoid repeating the same ideas in different wording.\n- Summarize large amounts of research into the most useful insights.\n- Use only the top 3–5 most relevant facts or sources from Tavily results.\n- Ignore irrelevant, noisy, or duplicate information from search results.\n- Write concise paragraphs (2–4 sentences max).\n- Use simple, natural language instead of overly technical wording unless required.\n- Include practical insights, examples, or actionable takeaways when relevant.\n- Optimize for readability and SEO naturally without keyword stuffing.\n- Avoid generic introductions and long conclusions.\n\n## Format Requirements\nFormat all blog content in clean HTML using:\n- <h1> for title\n- <h2> for sections\n- <p> for paragraphs\n- <ul><li> for bullet points\n- <a href=\"URL\"> for citations\n\n## Citation Rules\n- Preserve important citations from Tavily with clickable hyperlinks.\n- Only cite highly relevant and trustworthy sources.\n- Do not overload the article with excessive links.\n\n## Tone\nMaintain a professional yet conversational tone that feels natural and trustworthy."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -448,
+        80
+      ],
+      "id": "d7188d7f-1ce0-42ee-a800-0c61f8054c2b",
+      "name": "Content Creator Agent",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "14d9076e-27ea-4846-8b44-f83cf4022b9e",
+              "name": "response",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "b75f7911-5b18-4784-a824-d4f28056cadc",
+      "name": "Response"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f2a8ff2d-6b59-4ad6-a2e7-8705354f4105",
+              "name": "response",
+              "value": "Error occurred. Please try again.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        192
+      ],
+      "id": "e08e4251-7d23-468c-add0-37523f0692b2",
+      "name": "Try Again"
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -704,
+        80
+      ],
+      "id": "e639b169-f8c8-4536-9beb-c0673dcf22f8",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -608,
+        336
+      ],
+      "id": "93637ddb-ff10-4ed6-805b-739b6eabf6e5",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "X6yz5KIllfL8AWsR",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Use this tool to search the internet",
+        "method": "POST",
+        "url": "https://api.tavily.com/search",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n    \"api_key\": \"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\",\n    \"query\": \"{searchTerm}\",\n    \"search_depth\": \"basic\",\n    \"include_answer\": true,\n    \"topic\": \"news\",\n    \"include_raw_content\": true,\n    \"max_results\": 3\n} ",
+        "placeholderDefinitions": {
+          "values": [
+            {
+              "name": "searchTerm",
+              "description": "What the user has requested to write a blog about",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        -320,
+        368
+      ],
+      "id": "1af98e4a-aa07-4ffb-8fd2-e4e7fdf26645",
+      "name": "Web Search"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Content Creator Agent": {
+      "main": [
+        [
+          {
+            "node": "Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Try Again",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Content Creator Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Content Creator Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Web Search": {
+      "ai_tool": [
+        [
+          {
+            "node": "Content Creator Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "269c473e-df31-41b2-8482-80ddf03c08d0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dfa9bd419da97e8a72d6069acb67e95575c89baa71302d0781a7331301986176"
+  },
+  "id": "JcqZFCXT6UBUzdzB",
+  "tags": []
+}
